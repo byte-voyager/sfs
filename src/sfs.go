@@ -1,9 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 
@@ -46,48 +46,32 @@ func showQrcode(host string, ips ...string) {
 }
 
 func main() {
-	host := ":9000"
-	shareDir := "./"
-	argLen := len(os.Args)
-	if argLen == 2 {
-		if os.Args[1] == "-h" || os.Args[1] == "--help" || os.Args[1] == "help" {
-			fmt.Printf("Usage: sfs [host:port] [share_dir]\n")
-			fmt.Printf("       sfs [share_dir]\n")
-			fmt.Printf("Example: sfs 0.0.0.0:9000 ./\n")
-			fmt.Printf("         sfs :9000 ./\n")
-			fmt.Printf("         sfs ./\n")
-			return
-		}
+	var host = flag.String("a", "0.0.0.0:9000", "server bind address")
+	var shareDir = flag.String("d", "./", "directory to share")
+	var disable = flag.Bool("i", false, "ignore input(when use nohup)")
+	var maxCount = flag.Uint("m", 10, "input max count")
+	flag.Parse()
 
-		// 设置dir
-		shareDir = os.Args[1]
-		s, err := os.Stat(shareDir)
-		if err != nil {
-			fmt.Printf("Error, %s not a file or dir\n", shareDir)
-			return
-		}
-		if !s.IsDir() {
-			fmt.Printf("Error, %s not a dir\n", shareDir)
-			return
-		}
-
-	} else if argLen == 3 {
-		// 设置dir和host
-		host = os.Args[1]
-		shareDir = os.Args[2]
-	}
-	handler := http.FileServer(http.Dir(shareDir))
+	handler := http.FileServer(http.Dir(*shareDir))
 	ips, _ := net.IntranetIP()
 
 	http.Handle("/", handler)
 
-	fmt.Println("Share File Server listing on", host, shareDir)
-	go func() {
-		for {
-			showQrcode(host, ips...)
-		}
-	}()
-	err := http.ListenAndServe(host, nil)
+	fmt.Println("Share File Server listing on", *host, *shareDir, *disable)
+
+	if !*disable {
+		go func() {
+			for {
+				if *maxCount <= 0 {
+					return
+				}
+				*maxCount--
+				showQrcode(*host, ips...)
+			}
+		}()
+	}
+
+	err := http.ListenAndServe(*host, nil)
 	if err != nil {
 		fmt.Printf("Error, %s\n", err)
 	}
