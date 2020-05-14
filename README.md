@@ -20,6 +20,7 @@ Windows
 go env -w GOPROXY=https://goproxy.cn,direct
 cd path/of/this/project
 go build .
+go install
 ```
 
 
