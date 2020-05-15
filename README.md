@@ -24,6 +24,7 @@ go install
 ```
 
 OR
+
 Download binary executable file from release page
 
 
