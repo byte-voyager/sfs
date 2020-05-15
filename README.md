@@ -4,7 +4,7 @@ Golang HTTP static  file server
 # Run
 
 ```
-git clone --depth=1 https://github.com/Baloneo/share-file-server
+git clone --depth=1 https://github.com/Baloneo/sfs
 ```
 
 Linux
